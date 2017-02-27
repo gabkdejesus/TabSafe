@@ -8,12 +8,13 @@ function addLink(inp) {
     setStatus("Please enter a session name!");
   }
   else {
-    chrome.storage.sync.set({"name": link}, function() {
+    chrome.storage.local.set({"name": link}, function() {
       setStatus("Saved " + link + "!");
+      document.getElementById("input_name").value = "";
     })
   }
-  
 }
+
 
 // chrome.storage.onChanged.addListener(function(changes, namespace) {
 //         for (key in changes) {
@@ -27,20 +28,13 @@ function addLink(inp) {
 //         }
 //       });
 
-// function submit(e) {
-//   var key = e.keyCode || e.which;
-//   if(key == 13) {
-//     var name = document.getElementById("input_name").value;
-//     console.log(name);
-//     addLink(name);
-//   }
-// }
 
 document.addEventListener("DOMContentLoaded", function() {
   // Listen for submit from form
   document.getElementById("form").addEventListener("input", function () {
-    var name = document.getElementById("input_name").value;
-    document.getElementById("form").addEventListener("submit", function () {
+    var name = document.getElementById("input_name").value;  // Constantly updates
+    document.getElementById("form").addEventListener("submit", function (event) {
+      event.preventDefault();  // Prevents reload due to submit
       addLink(name);
     });
   });
@@ -48,5 +42,12 @@ document.addEventListener("DOMContentLoaded", function() {
   document.getElementById("button").onclick = function () {
     var name = document.getElementById("input_name").value;
     addLink(name);
-    };
+  };
+  // Listen for get button
+  document.getElementById("get").onclick = function () {
+    chrome.storage.local.get("name", function (value) {
+      console.log(value);
+      setStatus("Retrieved " + value["name"] + "!");
+    })
+  }
 });
