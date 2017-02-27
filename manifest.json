@@ -1,0 +1,16 @@
+{
+  "name": "Tab Safe",
+  "description": "A program that saves tabs into sessions for convenience.",
+  "version": "0.1",
+  "manifest_version": 2,
+
+  "browser_action": {
+    "default icon": "icon.png",
+    "default_popup": "popup.html",
+    "default_title": "Save your tabs!" 
+  },
+
+  "permissions": [
+  	"storage"
+  ]
+}

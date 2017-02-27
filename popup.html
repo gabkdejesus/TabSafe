@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style type="text/css">
+    body {
+      text-align: center;
+    }
+    #status {
+      white-space: pre;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      width: 230px;
+    }
+
+    #input_name {
+
+    }
+
+    #button {
+      display: inline;
+    }
+
+  </style>
+  <script src="popup.js"></script>
+</head>
+<body>
+  <h3 style="text-align: center">Save current tabs</h3>
+  <form id="form" autocomplete="off">
+      <input type="text" id="input_name" name="session_name" placeholder="Leave blank for no name" autocomplete="off">
+  </form> 
+  
+  <button id="button" title="hi">Save</button>
+  <div id="status"></div>
+</body>
+</html>
