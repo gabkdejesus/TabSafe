@@ -1,3 +1,4 @@
+
 /**
  * Set div to display some string
  *
@@ -8,35 +9,67 @@ function setStatus(statusText) {
   document.getElementById("status").textContent = statusText;
 }
 
-//accepts stringified tab list
-function saveSession(jsontabs) {
-  //  Var name here so that its latest name 
-  var name = document.getElementById("input_name").value;
-  var urllist = jsontabs;
-  if(!name) {
-    setStatus("Please enter a session name!");
-    console.log("No session name");
-  }
-  else {
-    chrome.storage.local.set({"name": name, "urls": urllist}, function() {
-      setStatus("Saved " + name + "!");
-      console.log("Saved " + name);
-      document.getElementById("input_name").value = "";
+/**
+ * Saves session (name - tabs) pair
+ *
+ * @ param {JSON stringified list} tabs - The tabs of a session
+ *
+ */
+function saveSession(tabs) {
+  // //  Var name here so that its latest name 
+  // var name = String(document.getElementById("input_name").value);
+  // if(!name) {
+  //   setStatus("Please enter a session name!");
+  //   console.log("No session name");
+  // }
+  // else {
+  //   chrome.storage.local.set({name: "session", "tabs": tabs}, function() {
+  //     setStatus("Saved session " + name + "!");
+  //     console.log("Saved session " + name + " with tabs " + tabs);
+  //     document.getElementById("input_name").value = "";
+  //   });
+  // }
+  var name = String(document.getElementById("input_name").value);
+    chrome.storage.local.get({names: []}, function (result) {
+    var names = result.names;
+    names.push({name: name});  // keyPairId is becoming a string?
+    names.push({tabs: tabs});
+    chrome.storage.local.set({names: names}, function () {
+      console.log("Saving done");
     });
-  }
+  });
 }
 
 function getSession() {
-  chrome.storage.local.get("name", function (value) {
-    console.log("Retrieved " + value["name"] + " with urls ");
-    setStatus("Retrieved " + value["name"] + "!");
+  chrome.storage.local.get(null, function (result) {
+    console.log("[GET]"); 
+
+    var names = result.names;  // no need to json stringify
+    var sessionName = String(document.getElementById("input_name").value);
+
+    var count = 0;
+    names.forEach(function(pair) {
+      if(pair["name"] == sessionName) {
+        var tabs = names[count + 1];
+        console.log(tabs);
+        console.log(tabs["tabs"]);
+        tabs["tabs"].forEach(function(tab) {
+          chrome.tabs.create({url:tab});
+        })
+      }
+      count += 1;
+    });
   });
-  chrome.storage.local.get("urls", function (value) {
-    var test = JSON.parse(value["urls"]);  // returns the array
-    test.forEach(function(entry) {
-      console.log(entry);
-    })
-  });
+}
+
+function getAllSessions() {
+  var name = String(document.getElementById("input_name").value);
+  console.log("[GET ALL]");
+  chrome.storage.local.get(null, function(values) {
+    for (key in values) {
+      console.log(values[key]);
+    }
+  })
 }
 
 /** 
@@ -46,6 +79,7 @@ function getSession() {
  */
 function getSelectedTabs(callback) {
   // Select all highlighted tabs, if none selected, automatically active tab
+  console.log("[SAVE]");
   var queryInfo = { highlighted: true };
   var tabUrlList = new Array();
   chrome.tabs.query(queryInfo, function(tabs) {
@@ -62,6 +96,11 @@ function getSelectedTabs(callback) {
   });
 }
 
+function clearSessions() {
+  chrome.storage.local.clear();
+  console.log("Session cleared");
+}
+
 document.addEventListener("DOMContentLoaded", function() {
   // Listen for submit from form, same as button click
   document.getElementById("form").addEventListener("submit", function (event) {
@@ -69,27 +108,39 @@ document.addEventListener("DOMContentLoaded", function() {
     getSelectedTabs(call);
   });
   // Listen for button click
-  document.getElementById("button").onclick = function () {
-    saveSession();
+  document.getElementById("save").onclick = function () {
+    getSelectedTabs(call);
   };
   // Listen for get button
   document.getElementById("get").onclick = function () {
     getSession();
   };
-  // Get selected tabs url
-  document.getElementById("tab").onclick = function () {
-    getSelectedTabs(call);
+  // Clear sessions
+  document.getElementById("clear").onclick = function () {
+    clearSessions();
   }
 });
 
-// contains the array in array form
+// try {
+//   chrome.storage.local.get({"count"}, function(value) {
+//     console.log("current session: " + value["count"]);
+//     var sessionCount = value["count"];
+//   });
+// }
+// catch(err) {
+//   var sessionCount = 0;
+//   console.log("Error reading session count");
+//   console.log(err.message);
+// }
+
+// contains the array of tabs
 function call(array) {
-  console.log("Selected tabs pushed into list:");
+  console.log("Selected tabs pushed into array:");
   console.log(array);
-  console.log("Parsing to JSON")
-  var jsontabs = JSON.stringify(array);
-  console.log("Done parsing");
-  console.log(jsontabs);
-  console.log("now saving");
-  saveSession(jsontabs);
+  // console.log("Stringifying array to JSON")
+  // var jsontabs = JSON.stringify(array);
+  // console.log("Stringify complete. Now saving.");
+  saveSession(array);
+  // saveSession(jsontabs);
+  // removed json stringify since this was double layering it, making it harder to extract
 }
